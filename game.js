@@ -6,6 +6,7 @@ class Game2048 {
         this.bestDisplay = document.getElementById('best');
         this.score = 0;
         this.bestScore = parseInt(localStorage.getItem('bestScore')) || 0;
+        this.bestDisplay.textContent = this.bestScore;  // Display best score immediately
         
         this.grid = Array(this.size).fill()
             .map(() => Array(this.size).fill(null));
