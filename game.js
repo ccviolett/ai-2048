@@ -6,7 +6,8 @@ class Game2048 {
         this.bestDisplay = document.getElementById('best');
         this.score = 0;
         this.bestScore = parseInt(localStorage.getItem('bestScore')) || 0;
-        this.bestDisplay.textContent = this.bestScore;  // Display best score immediately
+        this.bestDisplay.textContent = this.bestScore;  
+        this.autoPlayInterval = null;
         
         this.grid = Array(this.size).fill()
             .map(() => Array(this.size).fill(null));
@@ -63,6 +64,18 @@ class Game2048 {
 
         document.getElementById('new-game').addEventListener('click', () => {
             this.setupNewGame();
+            this.stopAutoPlay();
+        });
+
+        const autoPlayButton = document.getElementById('auto-play');
+        autoPlayButton.addEventListener('click', () => {
+            if (this.autoPlayInterval) {
+                this.stopAutoPlay();
+                autoPlayButton.classList.remove('active');
+            } else {
+                this.startAutoPlay();
+                autoPlayButton.classList.add('active');
+            }
         });
 
         // Add touch support
@@ -322,6 +335,66 @@ class Game2048 {
         setTimeout(() => {
             alert('Game Over! No more moves available.');
         }, 200);
+    }
+
+    startAutoPlay() {
+        if (this.autoPlayInterval) return;
+        
+        this.autoPlayInterval = setInterval(() => {
+            if (this.busy) return;
+            
+            // Try moves in this priority: up, left, right, down
+            const directions = ['up', 'left', 'right', 'down'];
+            let moved = false;
+            
+            // Try each direction until we find one that works
+            for (const direction of directions) {
+                if (this.canMove(direction)) {
+                    this.move(direction);
+                    moved = true;
+                    break;
+                }
+            }
+            
+            // If no move is possible, stop auto play
+            if (!moved) {
+                this.stopAutoPlay();
+                document.getElementById('auto-play').classList.remove('active');
+            }
+        }, 200); // Make a move every 200ms
+    }
+
+    stopAutoPlay() {
+        if (this.autoPlayInterval) {
+            clearInterval(this.autoPlayInterval);
+            this.autoPlayInterval = null;
+        }
+    }
+
+    canMove(direction) {
+        const vector = this.getVector(direction);
+        const traversals = this.buildTraversals(vector);
+        let canMove = false;
+
+        // Try to find at least one valid move
+        traversals.row.forEach(row => {
+            traversals.col.forEach(col => {
+                const tile = this.grid[row][col];
+                if (tile) {
+                    const positions = this.findFarthestPosition({row, col}, vector);
+                    const next = positions.next;
+
+                    // We can move if there's an empty spot or we can merge with another tile
+                    if (positions.farthest.row !== row || positions.farthest.col !== col ||
+                        (next && this.grid[next.row][next.col] && 
+                         this.grid[next.row][next.col].value === tile.value)) {
+                        canMove = true;
+                    }
+                }
+            });
+        });
+
+        return canMove;
     }
 }
 

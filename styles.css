@@ -61,9 +61,14 @@ h1 {
 
 .above-game {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    gap: 10px;
     margin-bottom: 20px;
+}
+
+.game-intro {
+    margin: 0;
+    flex-grow: 1;
 }
 
 .restart-button {
@@ -79,6 +84,15 @@ h1 {
     font-weight: bold;
     border: none;
     font-size: 18px;
+    transition: background-color 0.2s ease;
+}
+
+.restart-button:hover {
+    background: #9f8a76;
+}
+
+.restart-button.active {
+    background: #ff4f4f;
 }
 
 .game-container {
